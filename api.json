@@ -1,0 +1,326 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "description": "API specification for a simple key-value store that was mainly built for \npersisting values in CI/CD services that didn't have an effortless way\nof persisting values through multiple workflows or runs.\n\nYou're free to use this for your GitHub Actions, CircleCI, Travis CI workflows, or any other CI/CD service, or directly through this API.\n\nPlease contact me for any suggestions, comments, or feedback.\n",
+        "version": "1.0.0",
+        "title": "Persistent key-value store API",
+        "contact": {
+            "name": "Aaron Imming",
+            "email": "aaim@protonmail.com",
+            "url": "https://github.com/aaimio"
+        }
+    },
+    "servers": [
+        {
+            "description": "Persistent key-value store API",
+            "url": "https://persistent.aaim.io/api"
+        }
+    ],
+    "paths": {
+        "/values/new_unique_key": {
+            "get": {
+                "summary": "Generate a new unique key",
+                "tags": [
+                    "values"
+                ],
+                "description": "Generate a new unique key that can be used to set and get persistent values.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/OutputParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "example": {
+                                        "status": "ok",
+                                        "data": "76b96888-6a62-43d4-a6b5-2e2950e63d25"
+                                    }
+                                }
+                            },
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string",
+                                    "example": "76b96888-6a62-43d4-a6b5-2e2950e63d25"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
+        },
+        "/values/get": {
+            "get": {
+                "summary": "Get a persistent value",
+                "tags": [
+                    "values"
+                ],
+                "description": "Gets a persistent value",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/UniqueKeyParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/KeyParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "example": {
+                                        "status": "ok",
+                                        "data": "A persistent value"
+                                    }
+                                }
+                            },
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string",
+                                    "example": "A persistent value"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/UnprocessableEntity"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
+        },
+        "/values/set": {
+            "post": {
+                "summary": "Set a persistent value",
+                "tags": [
+                    "values"
+                ],
+                "description": "Sets a persistent value",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/UniqueKeyParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/KeyParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ValueParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TypeParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "example": {
+                                        "status": "ok",
+                                        "data": "A persistent value"
+                                    }
+                                }
+                            },
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string",
+                                    "example": "A persistent value"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/UnprocessableEntity"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "responses": {
+            "TooManyRequests": {
+                "description": "Too many requests",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "error"
+                                    ]
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "enum": [
+                                        "Too many requests"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "text/plain": {
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Too many requests"
+                            ]
+                        }
+                    }
+                }
+            },
+            "InternalServerError": {
+                "description": "Internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "error"
+                                    ]
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "enum": [
+                                        "Internal server error"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "text/plain": {
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Internal server error"
+                            ]
+                        }
+                    }
+                }
+            },
+            "UnprocessableEntity": {
+                "description": "Unprocessable entity",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "error"
+                                    ]
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "enum": [
+                                        "Unprocessable entity"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "text/plain": {
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Unprocessable entity"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "OutputParameter": {
+                "name": "output",
+                "in": "query",
+                "description": "Determine the type of response",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "json",
+                        "plain"
+                    ]
+                }
+            },
+            "UniqueKeyParameter": {
+                "name": "unique_key",
+                "in": "query",
+                "description": "A unique key used for setting and getting persistent values",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "example": "76b96888-6a62-43d4-a6b5-2e2950e63d25"
+                }
+            },
+            "KeyParameter": {
+                "name": "key",
+                "in": "query",
+                "description": "The key to retrieve a persistent value with",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "example": "example_key"
+                }
+            },
+            "ValueParameter": {
+                "name": "value",
+                "in": "query",
+                "description": "The value to be stored",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "example": "true"
+                }
+            },
+            "TypeParameter": {
+                "name": "type",
+                "in": "query",
+                "description": "The type of a value",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "example": "boolean",
+                    "default": "string",
+                    "enum": [
+                        "string",
+                        "boolean",
+                        "integer"
+                    ]
+                }
+            }
+        }
+    }
+}
