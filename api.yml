@@ -1,34 +1,16 @@
 openapi: 3.0.0
 info:
-    description: |
+    description: >
         API specification for a simple key-value store that was mainly built for 
+
         persisting values in CI/CD services that didn't have an effortless way
+
         of persisting values through multiple workflows or runs.
 
-        You're free to use this for your GitHub Actions, CircleCI, Travis CI workflows, or any other CI/CD service, or directly through this API.
 
-        Please contact me for any suggestions, comments, or feedback.
-    version: 1.0.0
-    title: Persistent key-value store API
-    contact:
-        name: Aaron Imming
-        email: aaim@protonmail.com
-        url: "https://github.com/aaimio"
-servers:
-    - description: Persistent key-value store API
-      url: "https://persistent.aaim.io/api"
-paths:
-    /values/new_unique_key:
-        get:
-            operationId: getUniqueKey
-openapi: 3.0.0
-info:
-    description: |
-        API specification for a simple key-value store that was mainly built for 
-        persisting values in CI/CD services that didn't have an effortless way
-        of persisting values through multiple workflows or runs.
+        You're free to use this for your GitHub Actions, CircleCI, Travis CI
+        workflows, or any other CI/CD service, or directly through this API.
 
-        You're free to use this for your GitHub Actions, CircleCI, Travis CI workflows, or any other CI/CD service, or directly through this API.
 
         Please contact me for any suggestions, comments, or feedback.
     version: 1.0.0
@@ -47,7 +29,9 @@ paths:
             summary: Generate a new unique key
             tags:
                 - values
-            description: Generate a new unique key that can be used to set and get persistent values.
+            description: >-
+                Generate a new unique key that can be used to set and get persistent
+                values.
             parameters:
                 - $ref: "#/components/parameters/OutputParameter"
             responses:
@@ -57,13 +41,20 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                                properties:
+                                    status:
+                                        type: string
+                                        enum:
+                                            - "ok"
+                                    data:
+                                        type: string
                                 example:
                                     status: ok
-                                    data: 76b96888-6a62-43d4-a6b5-2e2950e63d25
+                                    data: 3f226288c4dba5f1ccec4fa4cd517397zsfXDi5kTGQyz+2uuzJqXvn7jT60KtJ1o26odI2iETk=
                         text/plain:
                             schema:
                                 type: string
-                                example: 76b96888-6a62-43d4-a6b5-2e2950e63d25
+                                example: 3f226288c4dba5f1ccec4fa4cd517397zsfXDi5kTGQyz+2uuzJqXvn7jT60KtJ1o26odI2iETk=
                 "429":
                     $ref: "#/components/responses/TooManyRequests"
                 "500":
@@ -75,8 +66,9 @@ paths:
             tags:
                 - values
             description: Gets a persistent value
+            security:
+                - ApiKeyAuth: []
             parameters:
-                - $ref: "#/components/parameters/UniqueKeyParameter"
                 - $ref: "#/components/parameters/KeyParameter"
             responses:
                 "200":
@@ -85,6 +77,13 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                                properties:
+                                    status:
+                                        type: string
+                                        enum:
+                                            - "ok"
+                                    data:
+                                        type: string
                                 example:
                                     status: ok
                                     data: A persistent value
@@ -105,11 +104,24 @@ paths:
             tags:
                 - values
             description: Sets a persistent value
+            security:
+                - ApiKeyAuth: []
             parameters:
-                - $ref: "#/components/parameters/UniqueKeyParameter"
                 - $ref: "#/components/parameters/KeyParameter"
-                - $ref: "#/components/parameters/ValueParameter"
-                - $ref: "#/components/parameters/TypeParameter"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                value:
+                                    oneOf:
+                                        - type: string
+                                        - type: number
+                                        - type: boolean
+                        example:
+                            value: "some_value"
             responses:
                 "200":
                     description: Success
@@ -117,6 +129,13 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                                properties:
+                                    status:
+                                        type: string
+                                        enum:
+                                            - "ok"
+                                    data:
+                                        type: string
                                 example:
                                     status: ok
                                     data: A persistent value
@@ -124,6 +143,8 @@ paths:
                             schema:
                                 type: string
                                 example: A persistent value
+                "400":
+                    $ref: "#/components/responses/BadRequest"
                 "422":
                     $ref: "#/components/responses/UnprocessableEntity"
                 "429":
@@ -132,6 +153,21 @@ paths:
                     $ref: "#/components/responses/InternalServerError"
 components:
     responses:
+        BadRequest:
+            description: Bad request
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: string
+                                enum:
+                                    - error
+                            message:
+                                type: string
+                                enum:
+                                    - Bad request
         TooManyRequests:
             description: Too many requests
             content:
@@ -203,14 +239,6 @@ components:
                 enum:
                     - json
                     - plain
-        UniqueKeyParameter:
-            name: unique_key
-            in: query
-            description: A unique key used for setting and getting persistent values
-            required: true
-            schema:
-                type: string
-                example: 76b96888-6a62-43d4-a6b5-2e2950e63d25
         KeyParameter:
             name: key
             in: query
@@ -219,223 +247,10 @@ components:
             schema:
                 type: string
                 example: example_key
-        ValueParameter:
-            name: value
-            in: query
-            description: The value to be stored
-            required: true
-            schema:
-                type: string
-                example: "true"
-        TypeParameter:
-            name: type
-            in: query
-            description: The type of a value
-            required: false
-            schema:
-                type: string
-                example: boolean
-                default: string
-                enum:
-                    - string
-                    - boolean
-                    - integer
-tags:
-    - name: values
-            tags:
-                - values
-            description: Generate a new unique key that can be used to set and get persistent values.
-            parameters:
-                - $ref: "#/components/parameters/OutputParameter"
-            responses:
-                "200":
-                    description: Success
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                example:
-                                    status: ok
-                                    data: 76b96888-6a62-43d4-a6b5-2e2950e63d25
-                        text/plain:
-                            schema:
-                                type: string
-                                example: 76b96888-6a62-43d4-a6b5-2e2950e63d25
-                "429":
-                    $ref: "#/components/responses/TooManyRequests"
-                "500":
-                    $ref: "#/components/responses/InternalServerError"
-    /values/get:
-        get:
-            operationId: getPersistentValue
-            summary: Get a persistent value
-            tags:
-                - values
-            description: Gets a persistent value
-            parameters:
-                - $ref: "#/components/parameters/UniqueKeyParameter"
-                - $ref: "#/components/parameters/KeyParameter"
-            responses:
-                "200":
-                    description: Success
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                example:
-                                    status: ok
-                                    data: A persistent value
-                        text/plain:
-                            schema:
-                                type: string
-                                example: A persistent value
-                "422":
-                    $ref: "#/components/responses/UnprocessableEntity"
-                "429":
-                    $ref: "#/components/responses/TooManyRequests"
-                "500":
-                    $ref: "#/components/responses/InternalServerError"
-    /values/set:
-        post:
-            operationId: setPersistentValue
-            summary: Set a persistent value
-            tags:
-                - values
-            description: Sets a persistent value
-            parameters:
-                - $ref: "#/components/parameters/UniqueKeyParameter"
-                - $ref: "#/components/parameters/KeyParameter"
-                - $ref: "#/components/parameters/ValueParameter"
-                - $ref: "#/components/parameters/TypeParameter"
-            responses:
-                "200":
-                    description: Success
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                example:
-                                    status: ok
-                                    data: A persistent value
-                        text/plain:
-                            schema:
-                                type: string
-                                example: A persistent value
-                "422":
-                    $ref: "#/components/responses/UnprocessableEntity"
-                "429":
-                    $ref: "#/components/responses/TooManyRequests"
-                "500":
-                    $ref: "#/components/responses/InternalServerError"
-components:
-    responses:
-        TooManyRequests:
-            description: Too many requests
-            content:
-                application/json:
-                    schema:
-                        type: object
-                        properties:
-                            status:
-                                type: string
-                                enum:
-                                    - error
-                            message:
-                                type: string
-                                enum:
-                                    - Too many requests
-                text/plain:
-                    schema:
-                        type: string
-                        enum:
-                            - Too many requests
-        InternalServerError:
-            description: Internal server error
-            content:
-                application/json:
-                    schema:
-                        type: object
-                        properties:
-                            status:
-                                type: string
-                                enum:
-                                    - error
-                            message:
-                                type: string
-                                enum:
-                                    - Internal server error
-                text/plain:
-                    schema:
-                        type: string
-                        enum:
-                            - Internal server error
-        UnprocessableEntity:
-            description: Unprocessable entity
-            content:
-                application/json:
-                    schema:
-                        type: object
-                        properties:
-                            status:
-                                type: string
-                                enum:
-                                    - error
-                            message:
-                                type: string
-                                enum:
-                                    - Unprocessable entity
-                text/plain:
-                    schema:
-                        type: string
-                        enum:
-                            - Unprocessable entity
-    parameters:
-        OutputParameter:
-            name: output
-            in: query
-            description: Determine the type of response
-            required: false
-            schema:
-                type: string
-                enum:
-                    - json
-                    - plain
-        UniqueKeyParameter:
-            name: unique_key
-            in: query
-            description: A unique key used for setting and getting persistent values
-            required: true
-            schema:
-                type: string
-                example: 76b96888-6a62-43d4-a6b5-2e2950e63d25
-        KeyParameter:
-            name: key
-            in: query
-            description: The key to retrieve a persistent value with
-            required: true
-            schema:
-                type: string
-                example: example_key
-        ValueParameter:
-            name: value
-            in: query
-            description: The value to be stored
-            required: true
-            schema:
-                type: string
-                example: "true"
-        TypeParameter:
-            name: type
-            in: query
-            description: The type of a value
-            required: false
-            schema:
-                type: string
-                example: boolean
-                default: string
-                enum:
-                    - string
-                    - boolean
-                    - integer
+    securitySchemes:
+        ApiKeyAuth:
+            type: apiKey
+            in: header
+            name: x-api-key
 tags:
     - name: values
